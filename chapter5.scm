@@ -70,21 +70,43 @@
 (member* 'chips '((potato) (chips ((with) fish) (chips))))
 (member* 'chips '((fish) (sticks ((with) fish) (broth))))
 
-; frame 0: (null? l) | #f
-;          (car l) | (potato)
-;          (atom? (car l)) | #f
-;          (member* a (car l)) | downframe
-; frame 1: l | (potato)
-;          (null? l) | #f
-;          (car l) | potato
-;          (atom? (car l)) | #t
-;          (eq? (car l) a) | #f
-;          (cdr l) | ()
-;          (member* a (cdr l)) | downframe
-; frame 2: l | ()
-;          (null? l) | #t
-;          (not (null? l)) | #f -> return
-; frame 1: (member* a (cdr l)) | #f
-;          (or (eq? (car l) a) (member* a (cdr l)))) | #f
-;          (and (atom? (car l)) (or (eq? (car l) a) (member* a (cdr l)))) | #f
-;          
+(define leftmost
+  (lambda (l)
+    (cond
+      ((atom? (car l)) (car l))
+      (else (leftmost (car l))))))
+
+(leftmost '(((hot) (tuna (and))) cheese))
+
+(define eqan?
+  (lambda (x y)
+    (cond
+      ((and (number? x) (number? y)) (= x y))
+      ((or (number? x) (number? y)) #f)
+      (else (eq? x y)))))
+
+(define eqlist?
+  (lambda (l1 l2)
+    (cond
+      ((and (null? l1) (null? l2)) #t)
+      ((or (null? l1) (null? l2)) #f)
+      ((and (atom? (car l1)) (atom? (car l2))
+            (and (eqan? (car l1) (car l2))
+                 (eqlist? (cdr l1) (cdr l2)))))
+      ((or (atom? (car l1)) (atom? (car l2))) #f)
+      (else (and (eqlist? (car l1) (car l2))
+                 (eqlist? (cdr l1) (cdr l2)))))))
+
+(eqlist? '(strawberry ice cream) '(strawberry ice cream))
+(eqlist? '(strawberry ice cream) '(strawberry cream ice))
+(eqlist? '(banana ((split))) '((banana) (split)))
+(eqlist? '(beef ((sausage)) (and (soda))) '(beef ((salami)) (and (soda))))
+(eqlist? '(beef ((sausage)) (and (soda))) '(beef ((sausage)) (and (soda))))
+
+(define equal?
+  (lambda (s1 s2)
+    (cond
+      ((and (atom? s1) (atom? s2)) (eqan? s1 s2))
+      ((or (atom? s1) (atom? s2)) #f)
+      (else (eqlist? s1 s2)))))
+
