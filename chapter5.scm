@@ -59,13 +59,13 @@
 
 (define member*
   (lambda (a l)
-    (and (not (null? l))
-         (or (and (atom? (car l))
-                  (or (eq? (car l) a)
-                      (member* a (cdr l))))
-             (and (not (atom? (car l)))
-                  (or (member* a (car l))
-                      (member* a (cdr l))))))))
+    (cond
+      ((null? l) #f)
+      ((atom? (car l))
+       (or (eq? (car l) a)
+           (member* a (cdr l))))
+      (else (or (member* a (car l))
+                (member* a (cdr l)))))))
 
 (member* 'chips '((potato) (chips ((with) fish) (chips))))
 (member* 'chips '((fish) (sticks ((with) fish) (broth))))
